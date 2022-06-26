@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.0.3/tinymce.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-mce@1.5.2/dist/vue-mce.web.js"></script>
+    <title>Document</title>
+    <style>
+        .main {
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: center;;
+            margin: 50px 0;
+        }
+        .card-group {
+            display: flex;
+            flex-flow: column wrap;
+            width: 500px;
+        }
+        .card {
+            margin-bottom: 50px;
+            box-shadow: 0px 17px 42px rgb(0 0 0 / 15%);
+            padding: 25px;
+        }
+        .card.active {
+            border: 1px solid;
+        }
+        .card-title {
+            font-size: 24px;
+            margin-bottom: 25px;
+        }
+        .card-img {
+            max-width: 100%;
+            margin-bottom: 25px;
+            max-height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+        .card-body {
+            font-size: 18px;
+        }
+        .card-action {
+            width: 300px;
+        }
+        .card-btn {
+            background: #fff;
+            color: #bbb;
+            border: 1px solid #bbbbbb;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .card-btn:hover, .card-btn.active {
+            background: #bbb;
+            color: #fff;
+        }
+        .card .tinymce__init-area {
+            height: auto !important;
+            outline: none;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            window.app = new Vue({
+                el: '#app',
+                data: {
+                    'config': {
+                        menubar: false,
+                        statusbar: false,
+                        toolbar: false,
+                        inline: true
+                    },
+                    'cards': [],
+                    'activeCard': [],
+                    'lastId': 1,
+                },
+                methods: {
+                    request: function (id) {
+                        $.get(`https://jsonplaceholder.typicode.com/photos/${id}`)
+                            .done((response) => {
+                                if (!this.cards.length) {
+                                    this.cards.push(this.getStructure(response));
+                                } else {
+                                    if ($.map(this.cards, (card) => {return card.id != response.id})) {
+                                        this.cards.push(this.getStructure(response));
+                                    }
+                                }
+                            })
+                            .fail((response) => {
+                                alert(`status: ${response.status}, message: ${response.responseText}`)
+                            })
+                    },
+                    addCard: function () {
+                        this.request(this.lastId++)
+                    },
+                    getStructure: function (card) {
+                        return {
+                            'id': card.id,
+                            'thumbnailUrl': card.thumbnailUrl,
+                            'title':  card.title,
+                            'active': false,
+                            'italicActive': false,
+                            'body': `quia et suscipit suscipit recusandae consequuntur expedita et cum reprehenderit
+                                    molestiae ut ut quas totam nostrum rerum est autem sunt rem eveniet architecto`
+                        };
+                    },
+                    setActive: function (card) {
+                        this.activeCard = card;
+                    },
+                    handleChange: function () {
+                        this.activeCard.italicActive = tinymce.activeEditor.queryCommandState('Italic')
+                    }
+                },
+                mounted: function () {
+                    for (let i = 0; i < 3; i++) {
+                        this.request(this.lastId++);
+                    }
+                }
+            });
+            setInterval(() => {
+                app.activeCard.italicActive = tinymce.activeEditor.queryCommandState('Italic')
+            }, 200);
+        })
+    </script>
+</head>
+<body>
+    <div id="app">
+        <section class="main">
+            <div class="card-action">
+                <button onclick="tinyMCE.activeEditor.execCommand('Italic'); return false" :class="{'active': activeCard.italicActive}" class="card-btn">
+                    Курсив
+                </button>
+                <button @click="addCard" class="card-btn">Добавить еще</button>
+            </div>
+            <div class="card-group">
+                <div @click="setActive(card)" v-for="card of cards" :class="{'active': activeCard.id == card.id}" class="card">
+                    <div class="card-title">{{ card.title }}</div>
+                    <img class="card-img" :src="card.thumbnailUrl">
+                    <vue-mce v-model="card.body" :config="config" @change="handleChange" @init="handleChange" @click="handleChange"/>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
