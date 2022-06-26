@@ -69,10 +69,7 @@
                 el: '#app',
                 data: {
                     'config': {
-                        menubar: false,
-                        statusbar: false,
-                        toolbar: false,
-                        inline: true
+                        menubar: false, statusbar: false, toolbar: false, inline: true
                     },
                     'cards': [],
                     'activeCard': [],
@@ -82,13 +79,7 @@
                     request: function (id) {
                         $.get(`https://jsonplaceholder.typicode.com/photos/${id}`)
                             .done((response) => {
-                                if (!this.cards.length) {
-                                    this.cards.push(this.getStructure(response));
-                                } else {
-                                    if ($.map(this.cards, (card) => {return card.id != response.id})) {
-                                        this.cards.push(this.getStructure(response));
-                                    }
-                                }
+                                this.cards.push(this.getStructure(response));
                             })
                             .fail((response) => {
                                 alert(`status: ${response.status}, message: ${response.responseText}`)
