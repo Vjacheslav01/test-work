@@ -13,7 +13,7 @@
 </template>
 <script>
     import axios     from "axios";
-    import ItemCards from './card.vue'
+    import ItemCards from './items-card.vue'
 
     export default {
         name: 'MainPage',
